@@ -1,12 +1,11 @@
 package placement;
 
 import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import placement.core.GraphLoader;
-import placement.core.PathFinder;
+import utils.YenKSP;
 
 /**
  * Hello world!
@@ -28,8 +27,9 @@ public class App
         graph.nodes().forEach(n -> n.setAttribute("label", n.getId()));
         graph.edges().forEach(e -> e.setAttribute("label", "" + (int) e.getAttribute("weight")));
 
-        PathFinder pf = new PathFinder(graph);
-        pf.computeKShortestPaths(3);
+        YenKSP ksp = new YenKSP();
+        ksp.init(graph);
+        ksp.generateKPaths(3);
 
 
         // Displaying the Graph
