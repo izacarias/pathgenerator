@@ -31,15 +31,18 @@ public class YenKSP {
         this.K = K;
 
         // Get the shortest path using Dijkstra
+        this.K = 5;
         Node n = graphCopy.getNode(0);
         Node m = graphCopy.getNode(3);
-        this.generateKPathsNtoM(n, m, K);
+        this.generateKPathsNtoM(n, m, this.K);
 
     }
 
     private void generateKPathsNtoM(Node n, Node m, int K) {
         ArrayList<Path> a = new ArrayList<>();
         ArrayList<Path> b = new ArrayList<>();
+        // show graph
+        this.showGraph(graphCopy);
         // Determine the shortest path from the source to the sink.
         Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "weight");
         dijkstra.init(graphCopy);
@@ -50,10 +53,11 @@ public class YenKSP {
         dijkstra.clear();
         logger.debug("Dijkstra shortest path from {} to {}: {}", n, m, a0);
 
-        for (int k = 1; k <= K; k++) {
+        for (int k = 1; k < K; k++) {
             // The spur node ranges from the first node to the next to last node in the
             // previous k-shortest path.
             ArrayList<Edge> removedEdges = new ArrayList<>();
+            ArrayList<Node> removedNodes = new ArrayList<>();
             logger.debug("Starting k={} of K={}. A={}", k, K, a);
             for (int i = 0; i < a.get(k - 1).getNodeCount() - 2; i++) {
                 logger.debug("Starting sub-iteration {} from {} over path {}", i+1 , a.get(k - 1).getNodeCount() - 2 ,a.get(k - 1));
@@ -77,7 +81,6 @@ public class YenKSP {
                         Edge toRemove = src.getEdgeBetween(dst);
                         logger.debug("RootPath {} is equals to {}. Removing edge {} from graph.", rootPath,
                                 copyPathToI(p, i), toRemove);
-                        logger.debug("Removing edge [{}, {}] from graph.", src, dst);
                         removedEdges.add(toRemove);
                         graphCopy.removeEdge(toRemove);
                     }
@@ -86,7 +89,8 @@ public class YenKSP {
                 for (int j = 0; j < rootPath.getNodeCount(); j++) {
                     Node rootPathNode = rootPath.getNodePath().get(j);
                     if (!spurNode.equals(rootPathNode)) {
-                        logger.debug("Removing node {} from graph {}", rootPath, graphCopy);
+                        logger.debug("Removing node {} from graph {}", rootPathNode, graphCopy);
+                        removedNodes.add(rootPathNode);
                         graphCopy.removeNode(rootPathNode);
                     } else {
                         logger.debug("Not removing node {}. Root path node and spur node are equals.", rootPathNode);
@@ -110,10 +114,19 @@ public class YenKSP {
                     b.add(totalPath);
                 }
 
+                // TODO: remove
+                sleep();
+
                 logger.debug("Restoring the graph to the previous state.");
-                for (Edge edge : removedEdges) {
-                    graphCopy.addEdge(edge.getId(), edge.getNode0().getId() , edge.getNode1().getId());
+                for (Node node : removedNodes) {
+                    graphCopy.addNode(node.getId());
                 }
+                for (Edge edge : removedEdges) {
+                    graphCopy.addEdge(edge.getId(), edge.getNode0().getId() , edge.getNode1().getId() , true);
+                }
+                removedEdges.clear();
+                removedNodes.clear();
+
             }
 
             if (b.isEmpty()) {
@@ -161,7 +174,8 @@ public class YenKSP {
         for (int i = 1; i < allNodes.size(); i++) {
             Node currentNode = allNodes.get(i);
             if (!lastInserted.equals(currentNode)) {
-                path.add(currentNode.getEdgeFrom(lastInserted));
+                // path.add(currentNode.getEdgeFrom(lastInserted));
+                path.getNodeSet().add(currentNode);
                 lastInserted = currentNode;
             }
         }
@@ -230,4 +244,8 @@ public class YenKSP {
         System.setProperty("org.graphstream.ui", "swing");
         graph.display(false);
     }
+
+    protected void sleep() {
+		try { Thread.sleep(1000); } catch (Exception e) {}
+	}
 }
