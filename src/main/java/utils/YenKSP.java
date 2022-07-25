@@ -193,18 +193,6 @@ public class YenKSP {
     //     return path;
     // }
 
-    // private Path removeEdge(Path originalPath, Node src, Node dst) {
-    //     logger.debug("Removing edge [{}, {}] from path {}.", src, dst, originalPath);
-    //     Path newPath = new Path();
-    //     originalPath.edges().forEach(e -> {
-    //         if ((!e.getSourceNode().equals(src)) || (!e.getTargetNode().equals(dst))) {
-    //             newPath.add(e.getSourceNode(), e);
-    //         }
-    //     });
-    //     logger.debug("Updated path: {}", newPath);
-    //     return newPath;
-    // }
-
     private Path copyPathToI(Path pathToCopy, int i) {
         Path root = new Path();
         for (int j = 0; j <= i; j++) {
@@ -212,17 +200,6 @@ public class YenKSP {
         }
         return root;
     }
-
-    // private boolean compareRootPath(Path rootPath, Path compareTo, int i) {
-    //     boolean result = true;
-    //     for (int j = 0; j <= i; j++) {
-    //         Node rootPathNode = rootPath.getNodePath().get(j);
-    //         Node compareToNode = compareTo.getNodePath().get(j);
-    //         result = result && rootPathNode.equals(compareToNode);
-    //     }
-    //     logger.debug("Comparing RootPath {} with {}: {}", rootPath, compareTo, result);
-    //     return result;
-    // }
 
     private void showGraph(Graph graph) {
         String css = "";
