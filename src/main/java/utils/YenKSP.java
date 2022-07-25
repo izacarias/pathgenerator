@@ -12,6 +12,8 @@ import org.graphstream.graph.implementations.Graphs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.spi.LoggingEvent;
+
 
 public class YenKSP {
 
@@ -33,16 +35,21 @@ public class YenKSP {
         // Get the shortest path using Dijkstra
         this.K = 5;
         Node n = graphCopy.getNode(0);
-        Node m = graphCopy.getNode(3);
+        Node m = graphCopy.getNode(1);
         this.generateKPathsNtoM(n, m, this.K);
 
     }
 
     private void generateKPathsNtoM(Node n, Node m, int K) {
+        
         ArrayList<Path> a = new ArrayList<>();
+
+        // Initialize the set to store the potential kth shortest path.
         ArrayList<Path> b = new ArrayList<>();
+
         // show graph
         this.showGraph(graphCopy);
+
         // Determine the shortest path from the source to the sink.
         Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "weight");
         dijkstra.init(graphCopy);
@@ -54,48 +61,49 @@ public class YenKSP {
         logger.debug("Dijkstra shortest path from {} to {}: {}", n, m, a0);
 
         for (int k = 1; k < K; k++) {
-            // The spur node ranges from the first node to the next to last node in the
-            // previous k-shortest path.
             ArrayList<Edge> removedEdges = new ArrayList<>();
             ArrayList<Node> removedNodes = new ArrayList<>();
             logger.debug("Starting k={} of K={}. A={}", k, K, a);
-            for (int i = 0; i < a.get(k - 1).getNodeCount() - 2; i++) {
+            
+            // The spur node ranges from the first node to the next to last node in the previous k-shortest path.
+            for (int i = 0; i <= a.get(k - 1).getNodeCount() - 2; i++) {
                 logger.debug("Starting sub-iteration {} from {} over path {}", i+1 , a.get(k - 1).getNodeCount() - 2 ,a.get(k - 1));
+                
                 // Spur node is retrieved from the previous k-shortest path, k − 1.
                 Node spurNode = a.get(k - 1).getNodePath().get(i);
                 logger.debug("Spur node is {}", spurNode.getId());
 
-                // The sequence of nodes from the source to the spur node of the previous
-                // k-shortest path.
+                // The sequence of nodes from the source to the spur node of the previous k-shortest path.
                 Path rootPath = this.copyPathToI(a.get(k - 1), i);
                 logger.debug("Root path is {}", rootPath);
+
+
                 for (int j = 0; j < a.size(); j++) {
                     Path p = a.get(j);
                 
-                    // Remove the links that are part of the previous shortest paths which share the
-                    // same root path.
+                    // Remove the links that are part of the previous shortest paths which share the same root path.
                     if (rootPath.equals(copyPathToI(p, i))) {
-                        Node src, dst;
-                        src = graphCopy.getNode(p.getNodePath().get(i).getId());
-                        dst = graphCopy.getNode(p.getNodePath().get(i + 1).getId());
-                        Edge toRemove = src.getEdgeBetween(dst);
+                        String src, dst;
+                        src = p.getNodePath().get(i).getId();
+                        dst = p.getNodePath().get(i + 1).getId();
+                        Edge toRemove = graphCopy.getNode(src).getEdgeToward(graphCopy.getNode(dst)); // src.getEdgeBetween(dst);
                         logger.debug("RootPath {} is equals to {}. Removing edge {} from graph.", rootPath,
                                 copyPathToI(p, i), toRemove);
                         removedEdges.add(toRemove);
-                        graphCopy.removeEdge(toRemove);
+                        graphCopy.removeEdge(src, dst);
                     }
                 }
 
-                for (int j = 0; j < rootPath.getNodeCount(); j++) {
-                    Node rootPathNode = rootPath.getNodePath().get(j);
-                    if (!spurNode.equals(rootPathNode)) {
-                        logger.debug("Removing node {} from graph {}", rootPathNode, graphCopy);
-                        removedNodes.add(rootPathNode);
-                        graphCopy.removeNode(rootPathNode);
-                    } else {
-                        logger.debug("Not removing node {}. Root path node and spur node are equals.", rootPathNode);
-                    }
-                }
+                // for (int j = 0; j < rootPath.getNodeCount(); j++) {
+                //     Node rootPathNode = rootPath.getNodePath().get(j);
+                //     if (!spurNode.equals(rootPathNode)) {
+                //         logger.debug("Removing node {} from graph {}", rootPathNode, graphCopy);
+                //         removedNodes.add(rootPathNode);
+                //         graphCopy.removeNode(rootPathNode);
+                //     } else {
+                //         logger.debug("Not removing node {}. Root path node and spur node are equals.", rootPathNode);
+                //     }
+                // }
 
                 // Calculate the spur path from the spur node to the sink.
                 // TODO: Consider also checking if any spurPath found
@@ -106,6 +114,11 @@ public class YenKSP {
                 Path spurPath = dijkstraSpur.getPath(m);
                 logger.debug("Dijkstra shortest path for spur node {} to {}: {}", spurNode, m, spurPath);
                 dijkstraSpur.clear();
+
+                if (spurPath.getNodeCount() == 0){
+                    logger.debug("No path found from node {} to {}. Stopping!", spurNode, m);
+                    break;
+                }
 
                 // Entire path is made up of the root path and spur path.
                 Path totalPath = this.concatenatePath(rootPath, spurPath);
@@ -126,6 +139,8 @@ public class YenKSP {
                 }
                 removedEdges.clear();
                 removedNodes.clear();
+
+                logger.debug("B={}", b);
 
             }
 
@@ -158,7 +173,7 @@ public class YenKSP {
             
             // In fact we should rather use shift since we are removing the first element
             b.remove(0);
-            logger.debug("First element from B was removed: B={}", b);
+            logger.debug("First element from B was removed. New value of B={}", b);
         }
         System.out.println(a);
     }
