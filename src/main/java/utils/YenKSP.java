@@ -12,9 +12,6 @@ import org.graphstream.graph.implementations.Graphs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.spi.LoggingEvent;
-
-
 public class YenKSP {
 
     // private Graph graph;
@@ -35,20 +32,17 @@ public class YenKSP {
         // Get the shortest path using Dijkstra
         this.K = 5;
         Node n = graphCopy.getNode(0);
-        Node m = graphCopy.getNode(1);
+        Node m = graphCopy.getNode(3);
         this.generateKPathsNtoM(n, m, this.K);
 
     }
 
     private void generateKPathsNtoM(Node n, Node m, int K) {
-        
+
         ArrayList<Path> a = new ArrayList<>();
 
         // Initialize the set to store the potential kth shortest path.
         ArrayList<Path> b = new ArrayList<>();
-
-        // show graph
-        this.showGraph(graphCopy);
 
         // Determine the shortest path from the source to the sink.
         Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "weight");
@@ -64,49 +58,56 @@ public class YenKSP {
             ArrayList<Edge> removedEdges = new ArrayList<>();
             ArrayList<Node> removedNodes = new ArrayList<>();
             logger.debug("Starting k={} of K={}. A={}", k, K, a);
-            
-            // The spur node ranges from the first node to the next to last node in the previous k-shortest path.
+
+            // The spur node ranges from the first node to the next to last node in the
+            // previous k-shortest path.
             for (int i = 0; i <= a.get(k - 1).getNodeCount() - 2; i++) {
-                logger.debug("Starting sub-iteration {} from {} over path {}", i+1 , a.get(k - 1).getNodeCount() - 2 ,a.get(k - 1));
-                
+                logger.debug("Starting sub-iteration {} from {} over path {}", i + 1, a.get(k - 1).getNodeCount() - 2,
+                        a.get(k - 1));
+
                 // Spur node is retrieved from the previous k-shortest path, k − 1.
                 Node spurNode = a.get(k - 1).getNodePath().get(i);
                 logger.debug("Spur node is {}", spurNode.getId());
 
-                // The sequence of nodes from the source to the spur node of the previous k-shortest path.
+                // The sequence of nodes from the source to the spur node of the previous
+                // k-shortest path.
                 Path rootPath = this.copyPathToI(a.get(k - 1), i);
                 logger.debug("Root path is {}", rootPath);
 
-
                 for (int j = 0; j < a.size(); j++) {
                     Path p = a.get(j);
-                
-                    // Remove the links that are part of the previous shortest paths which share the same root path.
+
+                    // Remove the links that are part of the previous shortest paths which share the
+                    // same root path.
                     if (rootPath.equals(copyPathToI(p, i))) {
                         String src, dst;
                         src = p.getNodePath().get(i).getId();
                         dst = p.getNodePath().get(i + 1).getId();
                         Edge toRemove = graphCopy.getNode(src).getEdgeToward(graphCopy.getNode(dst)); // src.getEdgeBetween(dst);
-                        logger.debug("RootPath {} is equals to {}. Removing edge {} from graph.", rootPath,
-                                copyPathToI(p, i), toRemove);
-                        removedEdges.add(toRemove);
-                        graphCopy.removeEdge(src, dst);
+                        if (toRemove != null) {
+                            logger.debug("RootPath {} is equals to {}. Removing edge {} from graph.", rootPath,
+                                    copyPathToI(p, i), toRemove);
+                            removedEdges.add(toRemove);
+                            graphCopy.removeEdge(src, dst);
+                        } else {
+                            logger.debug("Cannot remove edge [{}--{}]. There is no such edge in the graph.", src,
+                                    dst);
+                        }
                     }
                 }
 
-                // for (int j = 0; j < rootPath.getNodeCount(); j++) {
-                //     Node rootPathNode = rootPath.getNodePath().get(j);
-                //     if (!spurNode.equals(rootPathNode)) {
-                //         logger.debug("Removing node {} from graph {}", rootPathNode, graphCopy);
-                //         removedNodes.add(rootPathNode);
-                //         graphCopy.removeNode(rootPathNode);
-                //     } else {
-                //         logger.debug("Not removing node {}. Root path node and spur node are equals.", rootPathNode);
-                //     }
-                // }
+                for (int j = 0; j < rootPath.getNodeCount(); j++) {
+                    Node rootPathNode = rootPath.getNodePath().get(j);
+                    if (!spurNode.equals(rootPathNode)) {
+                        logger.debug("Removing node {} from graph {}", rootPathNode, graphCopy);
+                        removedNodes.add(rootPathNode);
+                        graphCopy.removeNode(rootPathNode);
+                    } else {
+                        logger.debug("Not removing node {}. Root path node and spur node are equals.", rootPathNode);
+                    }
+                }
 
                 // Calculate the spur path from the spur node to the sink.
-                // TODO: Consider also checking if any spurPath found
                 Dijkstra dijkstraSpur = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
                 dijkstraSpur.init(graphCopy);
                 dijkstraSpur.setSource(spurNode);
@@ -115,27 +116,26 @@ public class YenKSP {
                 logger.debug("Dijkstra shortest path for spur node {} to {}: {}", spurNode, m, spurPath);
                 dijkstraSpur.clear();
 
-                if (spurPath.getNodeCount() == 0){
-                    logger.debug("No path found from node {} to {}. Stopping!", spurNode, m);
+                if (spurPath.nodes().count() > 0) {
+
+                    // Entire path is made up of the root path and spur path.
+                    Path totalPath = this.concatenatePath(rootPath, spurPath);
+                    if (!b.contains(totalPath)) {
+                        logger.debug("Adding path {}  to B", totalPath);
+                        b.add(totalPath);
+                    }
+
+                } else {
+                    logger.debug("No path found from node {} to {}. Skipping ", spurNode, m);
                     break;
                 }
-
-                // Entire path is made up of the root path and spur path.
-                Path totalPath = this.concatenatePath(rootPath, spurPath);
-                if (!b.contains(totalPath)) {
-                    logger.debug("Adding path {}  to B", totalPath);
-                    b.add(totalPath);
-                }
-
-                // TODO: remove
-                sleep();
 
                 logger.debug("Restoring the graph to the previous state.");
                 for (Node node : removedNodes) {
                     graphCopy.addNode(node.getId());
                 }
                 for (Edge edge : removedEdges) {
-                    graphCopy.addEdge(edge.getId(), edge.getNode0().getId() , edge.getNode1().getId() , true);
+                    graphCopy.addEdge(edge.getId(), edge.getNode0().getId(), edge.getNode1().getId(), true);
                 }
                 removedEdges.clear();
                 removedNodes.clear();
@@ -158,7 +158,7 @@ public class YenKSP {
                     return costP1 - costP2;
                 }
 
-                private int cost(Path p){
+                private int cost(Path p) {
                     int i = 0;
                     for (Edge edge : p.getEdgePath()) {
                         i = i + (int) edge.getAttribute("weight");
@@ -170,7 +170,7 @@ public class YenKSP {
             logger.debug("Adding the lowest cost path {} to A", b.get(0));
             a.add(b.get(0));
             logger.debug("A={}", a);
-            
+
             // In fact we should rather use shift since we are removing the first element
             b.remove(0);
             logger.debug("First element from B was removed. New value of B={}", b);
@@ -198,16 +198,6 @@ public class YenKSP {
         return path;
     }
 
-    // private Path computeDijkstra(Graph theGraph, Node srcNode, Node dstNode) {
-    //     Dijkstra dijkstraTemp = new Dijkstra(Dijkstra.Element.EDGE, "result", "weight");
-    //     dijkstraTemp.init(theGraph);
-    //     dijkstraTemp.setSource(srcNode);
-    //     dijkstraTemp.compute();
-    //     Path path = dijkstraTemp.getPath(dstNode);
-    //     dijkstraTemp.clear();
-    //     return path;
-    // }
-
     private Path copyPathToI(Path pathToCopy, int i) {
         Path root = new Path();
         for (int j = 0; j <= i; j++) {
@@ -215,29 +205,4 @@ public class YenKSP {
         }
         return root;
     }
-
-    private void showGraph(Graph graph) {
-        String css = "";
-        css = "node { " +
-                "fill-mode: none; " +
-                "stroke-mode: plain;" +
-                "stroke-color: #5585b5;" +
-                "stroke-width: 3;" +
-                "text-size: 12; " +
-                "text-background-mode: rounded-box; " +
-                "text-background-color: #bbe4e9;" +
-                "text-padding: 5px, 4px; " +
-                "text-offset: 0px, 5px;" +
-                "text-alignment: under;" +
-                "}";
-        // setting CSS Style
-        graph.setAttribute("ui.stylesheet", css);
-        // configuring the rendering engine to swing
-        System.setProperty("org.graphstream.ui", "swing");
-        graph.display(false);
-    }
-
-    protected void sleep() {
-		try { Thread.sleep(1000); } catch (Exception e) {}
-	}
 }
