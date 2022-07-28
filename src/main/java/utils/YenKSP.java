@@ -1,7 +1,9 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Edge;
@@ -16,14 +18,21 @@ public class YenKSP {
 
     // private Graph graph;
     private Graph graphCopy;
+    private Graph graphShadowing;
     private int K;
+    private String lengthAttribute;
     // private ArrayList<Path> paths;
     private static final Logger logger = LoggerFactory.getLogger(YenKSP.class);
 
-    public void init(Graph graph) {
+    public void init(Graph graph, String lengthAttribute) {
         // this.graph = graph;
         // cloning the graph to apply Yen's algorithm
         this.graphCopy = Graphs.clone(graph);
+        this.graphShadowing = Graphs.clone(graph);
+    }
+
+    public void init(Graph graph) {
+        this.init(graph, null);
     }
 
     public void generateKPaths(int K) {
@@ -31,28 +40,30 @@ public class YenKSP {
 
         // Get the shortest path using Dijkstra
         this.K = 5;
-        Node n = graphCopy.getNode(0);
-        Node m = graphCopy.getNode(3);
-        this.generateKPathsNtoM(n, m, this.K);
 
+        YenKSP.showGraph(graphCopy);
+
+        ArrayList<ArrayList<List <Node>>> myPaths = new ArrayList<>();
+        graphCopy.nodes().forEach(n -> {
+            graphCopy.nodes().forEach(m -> {
+                if (!n.getId().equals(m.getId())) {
+                    System.out.println(this.generateKPathsNtoM(n.getId(), m.getId(), this.K));
+                }
+            });
+        });
     }
 
-    private void generateKPathsNtoM(Node n, Node m, int K) {
+    private ArrayList<List<Node>> generateKPathsNtoM(String srcNodeId, String dstNodeId, int K) {
 
-        ArrayList<Path> a = new ArrayList<>();
+        logger.info("Generating K={} shortest path from {} to {}.", K, srcNodeId, dstNodeId);
+        ArrayList<List<Node>> a = new ArrayList<>();
 
         // Initialize the set to store the potential kth shortest path.
-        ArrayList<Path> b = new ArrayList<>();
+        ArrayList<List<Node>> b = new ArrayList<>();
 
         // Determine the shortest path from the source to the sink.
-        Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "weight");
-        dijkstra.init(graphCopy);
-        dijkstra.setSource(n);
-        dijkstra.compute();
-        Path a0 = dijkstra.getPath(m);
+        List<Node> a0 = this.computeDijkstra(graphCopy, srcNodeId, dstNodeId);
         a.add(a0);
-        dijkstra.clear();
-        logger.debug("Dijkstra shortest path from {} to {}: {}", n, m, a0);
 
         for (int k = 1; k < K; k++) {
             ArrayList<Edge> removedEdges = new ArrayList<>();
@@ -61,148 +72,189 @@ public class YenKSP {
 
             // The spur node ranges from the first node to the next to last node in the
             // previous k-shortest path.
-            for (int i = 0; i <= a.get(k - 1).getNodeCount() - 2; i++) {
-                logger.debug("Starting sub-iteration {} from {} over path {}", i + 1, a.get(k - 1).getNodeCount() - 2,
+            boolean done = false;
+            for (int i = 0; i <= a.get(k - 1).size() - 2 && !done; i++) {
+                logger.debug("Starting sub-iteration {} from {} over path {}", i + 1, a.get(k - 1).size() - 2,
                         a.get(k - 1));
 
                 // Spur node is retrieved from the previous k-shortest path, k − 1.
-                Node spurNode = a.get(k - 1).getNodePath().get(i);
-                logger.debug("Spur node is {}", spurNode.getId());
+                String spurNodeId = a.get(k - 1).get(i).getId();
+                logger.debug("Spur node is {}", spurNodeId);
 
-                // The sequence of nodes from the source to the spur node of the previous
-                // k-shortest path.
-                Path rootPath = this.copyPathToI(a.get(k - 1), i);
+                // Root path is the sequence of nodes from the source to the spur node on
+                // the the previous (k-1) shortest path
+                List<Node> rootPath = this.subPath(a.get(k - 1), i);
                 logger.debug("Root path is {}", rootPath);
 
+                // For each path p in A
                 for (int j = 0; j < a.size(); j++) {
-                    Path p = a.get(j);
+                    List<Node> currPath = a.get(j);
 
-                    // Remove the links that are part of the previous shortest paths which share the
-                    // same root path.
-                    if (rootPath.equals(copyPathToI(p, i))) {
-                        String src, dst;
-                        src = p.getNodePath().get(i).getId();
-                        dst = p.getNodePath().get(i + 1).getId();
-                        Edge toRemove = graphCopy.getNode(src).getEdgeToward(graphCopy.getNode(dst)); // src.getEdgeBetween(dst);
-                        if (toRemove != null) {
-                            logger.debug("RootPath {} is equals to {}. Removing edge {} from graph.", rootPath,
-                                    copyPathToI(p, i), toRemove);
-                            removedEdges.add(toRemove);
-                            graphCopy.removeEdge(src, dst);
-                        } else {
-                            logger.debug("Cannot remove edge [{}--{}]. There is no such edge in the graph.", src,
-                                    dst);
+                    if (rootPath.equals(subPath(currPath, i))) {
+                        logger.debug("RootPath {} is equals to CurrentPath {}", rootPath, subPath(currPath, i));
+                        // Remove the links that are part of the previous shortest paths which share the
+                        // same root path.
+                        String src = currPath.get(i).getId();
+                        String dst = currPath.get(i + 1).getId();
+                        Edge removeEdge = graphCopy.getNode(src).getEdgeToward(dst);
+                        if (removeEdge != null) {
+                            logger.debug("Removing edge {}", removeEdge);
+                            // save edge attributes as well?
+                            removedEdges.add(removeEdge);
+                            graphCopy.removeEdge(removeEdge);
                         }
                     }
                 }
 
-                for (int j = 0; j < rootPath.getNodeCount(); j++) {
-                    Node rootPathNode = rootPath.getNodePath().get(j);
-                    if (!spurNode.equals(rootPathNode)) {
-                        logger.debug("Removing node {} from graph {}", rootPathNode, graphCopy);
-                        removedNodes.add(rootPathNode);
-                        graphCopy.removeNode(rootPathNode);
-                    } else {
-                        logger.debug("Not removing node {}. Root path node and spur node are equals.", rootPathNode);
+                for (int j = 0; j < rootPath.size(); j++) {
+                    String rootPathNodeId = rootPath.get(j).getId();
+                    if (!spurNodeId.equals(rootPathNodeId)) {
+                        logger.debug("Removing node {} from graph", rootPathNodeId);
+                        removedNodes.add(graphCopy.getNode(rootPathNodeId));
+                        graphCopy.removeNode(rootPathNodeId);
                     }
                 }
 
                 // Calculate the spur path from the spur node to the sink.
-                Dijkstra dijkstraSpur = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
-                dijkstraSpur.init(graphCopy);
-                dijkstraSpur.setSource(spurNode);
-                dijkstraSpur.compute();
-                Path spurPath = dijkstraSpur.getPath(m);
-                logger.debug("Dijkstra shortest path for spur node {} to {}: {}", spurNode, m, spurPath);
-                dijkstraSpur.clear();
-
-                if (spurPath.nodes().count() > 0) {
-
-                    // Entire path is made up of the root path and spur path.
-                    Path totalPath = this.concatenatePath(rootPath, spurPath);
+                List<Node> totalPath = new ArrayList<>();
+                List<Node> spurPath = this.computeDijkstra(graphCopy, spurNodeId, dstNodeId);
+                if (spurPath.size() > 0) {
+                    totalPath = this.concatenatePath(rootPath, spurPath);
                     if (!b.contains(totalPath)) {
-                        logger.debug("Adding path {}  to B", totalPath);
+                        logger.debug("Adding path {} to B", totalPath);
                         b.add(totalPath);
                     }
-
-                } else {
-                    logger.debug("No path found from node {} to {}. Skipping ", spurNode, m);
-                    break;
                 }
 
                 logger.debug("Restoring the graph to the previous state.");
-                for (Node node : removedNodes) {
-                    graphCopy.addNode(node.getId());
-                }
-                for (Edge edge : removedEdges) {
-                    graphCopy.addEdge(edge.getId(), edge.getNode0().getId(), edge.getNode1().getId(), true);
-                }
-                removedEdges.clear();
-                removedNodes.clear();
-
-                logger.debug("B={}", b);
+                graphCopy = Graphs.clone(this.graphShadowing);
 
             }
 
-            if (b.isEmpty()) {
+            if (!b.isEmpty()) {
+                logger.debug("Adding first element of B(1)={} to A", b.get(0));
+                // Sorting B according to path cost
+                Collections.sort(b, new PathComparator(graphCopy, "weight"));
+                a.add(b.get(0));
+                b.remove(0);
+                logger.debug("Value of A={}", a);
+                logger.debug("Value of B={}", b);
+            } else {
                 logger.debug("B is empty! Breaking the iteration k={}", k);
-                break;
+                done = true;
             }
 
-            logger.debug("Sorting B according to the path cost.");
-            b.sort(new Comparator<Path>() {
-                @Override
-                public int compare(Path p1, Path p2) {
-                    int costP1 = cost(p1);
-                    int costP2 = cost(p2);
-                    return costP1 - costP2;
-                }
-
-                private int cost(Path p) {
-                    int i = 0;
-                    for (Edge edge : p.getEdgePath()) {
-                        i = i + (int) edge.getAttribute("weight");
-                    }
-                    return i;
-                }
-            });
-
-            logger.debug("Adding the lowest cost path {} to A", b.get(0));
-            a.add(b.get(0));
-            logger.debug("A={}", a);
-
-            // In fact we should rather use shift since we are removing the first element
-            b.remove(0);
-            logger.debug("First element from B was removed. New value of B={}", b);
         }
-        System.out.println(a);
+        return a;
     }
 
-    private Path concatenatePath(Path prefixPath, Path suffixPath) {
+    public List<Node> computeDijkstra(Graph g, String source, String destination) {
+        logger.debug("Computing Dijkstra shortest path from node {} to node {}.", source, destination);
+        Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", this.lengthAttribute);
+        dijkstra.init(g);
+        dijkstra.setSource(g.getNode(source));
+        dijkstra.compute();
+        List<Node> result = new ArrayList<Node>();
+        for (Node node : dijkstra.getPathNodes(g.getNode(destination))) {
+            result.add(0, node);
+        }
+        dijkstra.clear();
+        logger.debug("Shortest path from node {} to node {} is {}.", source, destination, result);
+        return result;
+    }
+
+    private List<Node> subPath(List<Node> originalPath, int copyTo) {
+        List<Node> subPath = new ArrayList<>();
+        for (int i = 0; i <= copyTo && i < originalPath.size(); i++) {
+            subPath.add(originalPath.get(i));
+        }
+        return subPath;
+    }
+
+    private List<Node> concatenatePath(List<Node> prefixPath, List<Node> suffixPath) {
         logger.debug("Concatenating path {} with {}", prefixPath, suffixPath);
-        Path path = new Path();
-        ArrayList<Node> allNodes = new ArrayList<>();
-        prefixPath.nodes().forEach(n -> allNodes.add(n));
-        suffixPath.nodes().forEach(n -> allNodes.add(n));
-        path.setRoot(allNodes.get(0));
-        Node lastInserted = path.getRoot();
-        for (int i = 1; i < allNodes.size(); i++) {
-            Node currentNode = allNodes.get(i);
-            if (!lastInserted.equals(currentNode)) {
-                // path.add(currentNode.getEdgeFrom(lastInserted));
-                path.getNodeSet().add(currentNode);
+        List<Node> newPath = new ArrayList<>(prefixPath);
+        Node lastInserted = newPath.get(newPath.size() - 1);
+        for (int i = 0; i < suffixPath.size(); i++) {
+            Node currentNode = suffixPath.get(i);
+            if (!lastInserted.getId().equals(currentNode.getId())) {
+                newPath.add(currentNode);
                 lastInserted = currentNode;
             }
         }
-        logger.debug("The joined path is N={}, E={}", path.getNodePath(), path.getEdgePath());
-        return path;
+        logger.debug("The joined path is N={}", newPath);
+        return newPath;
     }
 
-    private Path copyPathToI(Path pathToCopy, int i) {
-        Path root = new Path();
-        for (int j = 0; j <= i; j++) {
-            root.getNodePath().add(pathToCopy.getNodePath().get(j));
+    /* For testing TODO: remove */
+
+    private static void sleep(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return root;
     }
+
+    private static void showGraph(Graph graph) {
+        String css = "";
+        css = "node { " +
+                "fill-mode: none; " +
+                "stroke-mode: plain;" +
+                "stroke-color: #5585b5;" +
+                "stroke-width: 3;" +
+                "text-size: 12; " +
+                "text-background-mode: rounded-box; " +
+                "text-background-color: #bbe4e9;" +
+                "text-padding: 5px, 4px; " +
+                "text-offset: 0px, 5px;" +
+                "text-alignment: under;" +
+                "}";
+        // setting CSS Style
+        graph.setAttribute("ui.stylesheet", css);
+        // configuring the rendering engine to swing
+        System.setProperty("org.graphstream.ui", "swing");
+        graph.display();
+    }
+
+    /* Private class to sort B */
+
+    private class PathComparator implements Comparator<List<Node>> {
+        private Graph graph;
+        String attribute;
+
+        public PathComparator(Graph g, String attribute) {
+            this.graph = g;
+            this.attribute = attribute;
+        }
+
+        @Override
+        public int compare(List<Node> pathList1, List<Node> pathList2) {
+            Path path1 = listToPath(pathList1, this.graph);
+            Path path2 = listToPath(pathList2, this.graph);
+            return (int) this.getPathCost(path1) - this.getPathCost(path2);
+        }
+
+        private Path listToPath(List<Node> pathList, Graph g) {
+            Path path = new Path();
+            // path.setRoot(pathList.get(0));
+            for (int i = 0; i < pathList.size() - 1; i++) {
+                Node srcNode = g.getNode(pathList.get(i).getId());
+                Node dstNode = g.getNode(pathList.get(i + 1).getId());
+                path.add(srcNode, srcNode.getEdgeToward(dstNode));
+            }
+            return path;
+        }
+
+        private int getPathCost(Path path) {
+            int i = 0;
+            for (Edge edge : path.getEdgePath()) {
+                i = i + (int) edge.getAttribute(this.attribute);
+            }
+            return i;
+        };
+
+    }
+
 }
