@@ -16,17 +16,18 @@ import org.slf4j.LoggerFactory;
 
 public class YenKSP {
 
-    // private Graph graph;
+    /* A copy of the graph is used to apply the algorithm */
     private Graph graphCopy;
+    /*
+     * Used to restore the graph to the previous state (after removing nodes and
+     * edges)
+     */
     private Graph graphShadowing;
     private int K;
     private String lengthAttribute;
-    // private ArrayList<Path> paths;
     private static final Logger logger = LoggerFactory.getLogger(YenKSP.class);
 
     public void init(Graph graph, String lengthAttribute) {
-        // this.graph = graph;
-        // cloning the graph to apply Yen's algorithm
         this.graphCopy = Graphs.clone(graph);
         this.graphShadowing = Graphs.clone(graph);
     }
@@ -38,12 +39,7 @@ public class YenKSP {
     public void generateKPaths(int K) {
         this.K = K;
 
-        // Get the shortest path using Dijkstra
-        this.K = 5;
-
-        YenKSP.showGraph(graphCopy);
-
-        ArrayList<ArrayList<List <Node>>> myPaths = new ArrayList<>();
+        ArrayList<ArrayList<List<Node>>> myPaths = new ArrayList<>();
         graphCopy.nodes().forEach(n -> {
             graphCopy.nodes().forEach(m -> {
                 if (!n.getId().equals(m.getId())) {
@@ -184,38 +180,6 @@ public class YenKSP {
         }
         logger.debug("The joined path is N={}", newPath);
         return newPath;
-    }
-
-    /* For testing TODO: remove */
-
-    private static void sleep(int seconds) {
-        try {
-            Thread.sleep(seconds * 1000);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    private static void showGraph(Graph graph) {
-        String css = "";
-        css = "node { " +
-                "fill-mode: none; " +
-                "stroke-mode: plain;" +
-                "stroke-color: #5585b5;" +
-                "stroke-width: 3;" +
-                "text-size: 12; " +
-                "text-background-mode: rounded-box; " +
-                "text-background-color: #bbe4e9;" +
-                "text-padding: 5px, 4px; " +
-                "text-offset: 0px, 5px;" +
-                "text-alignment: under;" +
-                "}";
-        // setting CSS Style
-        graph.setAttribute("ui.stylesheet", css);
-        // configuring the rendering engine to swing
-        System.setProperty("org.graphstream.ui", "swing");
-        graph.display();
     }
 
     /* Private class to sort B */
