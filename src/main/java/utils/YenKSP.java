@@ -27,26 +27,28 @@ public class YenKSP {
     private String lengthAttribute;
     private static final Logger logger = LoggerFactory.getLogger(YenKSP.class);
 
-    public void init(Graph graph, String lengthAttribute) {
+    
+    public YenKSP(Graph graph) {
+        this(graph, null);
+    }
+
+    public YenKSP(Graph graph, String lengthAttribute) {
         this.graphCopy = Graphs.clone(graph);
         this.graphShadowing = Graphs.clone(graph);
+        this.lengthAttribute = lengthAttribute;
     }
 
-    public void init(Graph graph) {
-        this.init(graph, null);
-    }
-
-    public void generateKPaths(int K) {
+    public List<List<Node>> generateKPaths(int K) {
+        List<List<Node>> result = new ArrayList<>();
         this.K = K;
-
-        ArrayList<ArrayList<List<Node>>> myPaths = new ArrayList<>();
         graphCopy.nodes().forEach(n -> {
             graphCopy.nodes().forEach(m -> {
                 if (!n.getId().equals(m.getId())) {
-                    System.out.println(this.generateKPathsNtoM(n.getId(), m.getId(), this.K));
+                    result.addAll((this.generateKPathsNtoM(n.getId(), m.getId(), this.K)));
                 }
             });
         });
+        return result;
     }
 
     private ArrayList<List<Node>> generateKPathsNtoM(String srcNodeId, String dstNodeId, int K) {

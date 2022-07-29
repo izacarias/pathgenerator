@@ -1,6 +1,8 @@
 package placement;
 
+import java.util.List;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +29,12 @@ public class App
         graph.nodes().forEach(n -> n.setAttribute("label", n.getId()));
         graph.edges().forEach(e -> e.setAttribute("label", "" + (int) e.getAttribute("weight")));
 
-        YenKSP ksp = new YenKSP();
-        ksp.init(graph);
-        ksp.generateKPaths(3);
-
-
-        // Displaying the Graph
-        // showGraph(graph);
+        YenKSP ksp = new YenKSP(graph);
+        List<List<Node>> paths = ksp.generateKPaths(5);
+        for (List<Node> path : paths) {
+            System.out.println(path);    
+        }
+        
     }
 
     /**
