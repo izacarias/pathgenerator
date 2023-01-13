@@ -18,12 +18,6 @@
   </properties>
 
   <dependencies>
-    <!-- Gurobi local JAR -->
-    <dependency>
-      <groupId>gurobi</groupId>
-      <artifactId>gurobi</artifactId>
-      <version>9.5.2</version>
-    </dependency>
     <!-- Graphstream core and UI -->
     <dependency>
       <groupId>org.graphstream</groupId>

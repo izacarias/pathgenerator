@@ -51,6 +51,20 @@ public class YenKSP {
         return result;
     }
 
+    public List<List<Node>> generateKPathsTiers(int K) { 
+        List<List<Node>> result = new ArrayList<>();
+        this.K = K;
+        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 3).forEach(n -> {
+            graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 0).forEach(m -> {
+                if (!n.getId().equals(m.getId())) {
+                    result.addAll((this.generateKPathsNtoM(n.getId(), m.getId(), this.K)));
+                }
+            });
+        });
+        return result;
+    }
+
+
     private ArrayList<List<Node>> generateKPathsNtoM(String srcNodeId, String dstNodeId, int K) {
 
         logger.info("Generating K={} shortest path from {} to {}.", K, srcNodeId, dstNodeId);
@@ -71,62 +85,67 @@ public class YenKSP {
             // The spur node ranges from the first node to the next to last node in the
             // previous k-shortest path.
             boolean done = false;
-            for (int i = 0; i <= a.get(k - 1).size() - 2 && !done; i++) {
-                logger.debug("Starting sub-iteration {} from {} over path {}", i + 1, a.get(k - 1).size() - 2,
-                        a.get(k - 1));
 
-                // Spur node is retrieved from the previous k-shortest path, k − 1.
-                String spurNodeId = a.get(k - 1).get(i).getId();
-                logger.debug("Spur node is {}", spurNodeId);
+            try {
+                for (int i = 0; i <= a.get(k - 1).size() - 2 && !done; i++) {
+                    logger.debug("Starting sub-iteration {} from {} over path {}", i + 1, a.get(k - 1).size() - 2,
+                            a.get(k - 1));
 
-                // Root path is the sequence of nodes from the source to the spur node on
-                // the the previous (k-1) shortest path
-                List<Node> rootPath = this.subPath(a.get(k - 1), i);
-                logger.debug("Root path is {}", rootPath);
+                    // Spur node is retrieved from the previous k-shortest path, k − 1.
+                    String spurNodeId = a.get(k - 1).get(i).getId();
+                    logger.debug("Spur node is {}", spurNodeId);
 
-                // For each path p in A
-                for (int j = 0; j < a.size(); j++) {
-                    List<Node> currPath = a.get(j);
+                    // Root path is the sequence of nodes from the source to the spur node on
+                    // the the previous (k-1) shortest path
+                    List<Node> rootPath = this.subPath(a.get(k - 1), i);
+                    logger.debug("Root path is {}", rootPath);
 
-                    if (rootPath.equals(subPath(currPath, i))) {
-                        logger.debug("RootPath {} is equals to CurrentPath {}", rootPath, subPath(currPath, i));
-                        // Remove the links that are part of the previous shortest paths which share the
-                        // same root path.
-                        String src = currPath.get(i).getId();
-                        String dst = currPath.get(i + 1).getId();
-                        Edge removeEdge = graphCopy.getNode(src).getEdgeToward(dst);
-                        if (removeEdge != null) {
-                            logger.debug("Removing edge {}", removeEdge);
-                            // save edge attributes as well?
-                            removedEdges.add(removeEdge);
-                            graphCopy.removeEdge(removeEdge);
+                    // For each path p in A
+                    for (int j = 0; j < a.size(); j++) {
+                        List<Node> currPath = a.get(j);
+
+                        if (rootPath.equals(subPath(currPath, i))) {
+                            logger.debug("RootPath {} is equals to CurrentPath {}", rootPath, subPath(currPath, i));
+                            // Remove the links that are part of the previous shortest paths which share the
+                            // same root path.
+                            String src = currPath.get(i).getId();
+                            String dst = currPath.get(i + 1).getId();
+                            Edge removeEdge = graphCopy.getNode(src).getEdgeToward(dst);
+                            if (removeEdge != null) {
+                                logger.debug("Removing edge {}", removeEdge);
+                                // save edge attributes as well?
+                                removedEdges.add(removeEdge);
+                                graphCopy.removeEdge(removeEdge);
+                            }
                         }
                     }
-                }
 
-                for (int j = 0; j < rootPath.size(); j++) {
-                    String rootPathNodeId = rootPath.get(j).getId();
-                    if (!spurNodeId.equals(rootPathNodeId)) {
-                        logger.debug("Removing node {} from graph", rootPathNodeId);
-                        removedNodes.add(graphCopy.getNode(rootPathNodeId));
-                        graphCopy.removeNode(rootPathNodeId);
+                    for (int j = 0; j < rootPath.size(); j++) {
+                        String rootPathNodeId = rootPath.get(j).getId();
+                        if (!spurNodeId.equals(rootPathNodeId)) {
+                            logger.debug("Removing node {} from graph", rootPathNodeId);
+                            removedNodes.add(graphCopy.getNode(rootPathNodeId));
+                            graphCopy.removeNode(rootPathNodeId);
+                        }
                     }
-                }
 
-                // Calculate the spur path from the spur node to the sink.
-                List<Node> totalPath = new ArrayList<>();
-                List<Node> spurPath = this.computeDijkstra(graphCopy, spurNodeId, dstNodeId);
-                if (spurPath.size() > 0) {
-                    totalPath = this.concatenatePath(rootPath, spurPath);
-                    if (!b.contains(totalPath)) {
-                        logger.debug("Adding path {} to B", totalPath);
-                        b.add(totalPath);
+                    // Calculate the spur path from the spur node to the sink.
+                    List<Node> totalPath = new ArrayList<>();
+                    List<Node> spurPath = this.computeDijkstra(graphCopy, spurNodeId, dstNodeId);
+                    if (spurPath.size() > 0) {
+                        totalPath = this.concatenatePath(rootPath, spurPath);
+                        if (!b.contains(totalPath)) {
+                            logger.debug("Adding path {} to B", totalPath);
+                            b.add(totalPath);
+                        }
                     }
+
+                    logger.debug("Restoring the graph to the previous state.");
+                    graphCopy = Graphs.clone(this.graphShadowing);
+
                 }
-
-                logger.debug("Restoring the graph to the previous state.");
-                graphCopy = Graphs.clone(this.graphShadowing);
-
+            } catch (IndexOutOfBoundsException e){
+                logger.error("There is no path between node {} and {}. Aborting the loop.", srcNodeId, dstNodeId);
             }
 
             if (!b.isEmpty()) {
