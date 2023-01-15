@@ -2,7 +2,6 @@ package placement;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,6 +20,23 @@ public class GenerateServices {
     private List<Service> services;
     private Logger logger = LoggerFactory.getLogger(App.class);
     private Random rnd = new Random();
+
+    private enum ServiceType {
+        URLLC("1"), 
+        EMBB("2"), 
+        MMTC("3");
+        
+        private final String text;
+
+        ServiceType(final String text){
+            this.text = text;
+        }
+
+        @Override
+        public String toString(){
+            return text;
+        }
+    }
     
     public GenerateServices() {
         this.services = new ArrayList<Service>();
@@ -104,7 +120,7 @@ public class GenerateServices {
         String strFactor;
         Integer factor;
         List<String> stubContent = this.readStubFile();
-        List<Integer> sliceScaleFactor = Arrays.asList(100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200);
+        List<Integer> sliceScaleFactor = Arrays.asList(100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200);
         List<String> demandsStrArr = new ArrayList<String>();
         List<Service> origServices = this.generateServices(numSlices);
         List<String> srcNodesList = new ArrayList<String>();
@@ -119,7 +135,7 @@ public class GenerateServices {
             for (int j = 0; j < origServices.size(); j++) {
                 Service svc2 = origServices.get(j).clone();
                 // Only scale up demands of type URLLC
-                if (svc2.getDmClass().equals("1")) {
+                if (svc2.getDmClass().equals(ServiceType.URLLC.toString())) {
                     svc2.setDmBandwidth(Math.ceil(origServices.get(j).getDmBandwidth(true) * factor / 100));
                 }
                 generatedSvc.add(svc2);
