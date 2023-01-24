@@ -128,24 +128,26 @@ public class GenerateServices {
             srcNodesList.add(String.valueOf(this.rnd.nextInt(30) + 21));
         }
 
-        for (int i = 0; i < sliceScaleFactor.size(); i++) {
-            List<Service> generatedSvc = new ArrayList<Service>();
-            demandsStrArr.clear();
-            factor = sliceScaleFactor.get(i);
-            for (int j = 0; j < origServices.size(); j++) {
-                Service svc2 = origServices.get(j).clone();
-                // Only scale up demands of type URLLC
-                if (svc2.getDmClass().equals(ServiceType.URLLC.toString())) {
-                    svc2.setDmBandwidth(Math.ceil(origServices.get(j).getDmBandwidth(true) * factor / 100));
+        for (int rep = 1; rep <= 10; rep++) {
+            for (int i = 0; i < sliceScaleFactor.size(); i++) {
+                List<Service> generatedSvc = new ArrayList<Service>();
+                demandsStrArr.clear();
+                factor = sliceScaleFactor.get(i);
+                for (int j = 0; j < origServices.size(); j++) {
+                    Service svc2 = origServices.get(j).clone();
+                    // Only scale up demands of type URLLC
+                    if (svc2.getDmClass().equals(ServiceType.URLLC.toString())) {
+                        svc2.setDmBandwidth(Math.ceil(origServices.get(j).getDmBandwidth(true) * factor / 100));
+                    }
+                    generatedSvc.add(svc2);
                 }
-                generatedSvc.add(svc2);
+                List<String> generatedStrSvc = servicesToStrArr(generatedSvc, srcNodesList);
+                demandsStrArr.addAll(generatedStrSvc);
+                strFactor = String.format("%03d", factor);
+                fileName = folderName + "icc_" + strFactor + "-" + String.format("%02d", rep) + ".yml";
+                System.out.println("# Generating file" + fileName + ".");
+                saveToFile(stubContent, demandsStrArr, fileName);
             }
-            List<String> generatedStrSvc = servicesToStrArr(generatedSvc, srcNodesList);
-            demandsStrArr.addAll(generatedStrSvc);
-            strFactor = String.format("%03d", factor);
-            fileName = folderName + "icc_" + strFactor + ".yml";
-            System.out.println("# Generating file" + fileName + ".");
-            saveToFile(stubContent, demandsStrArr, fileName);
         }
     }
 
