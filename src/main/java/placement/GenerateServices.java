@@ -84,7 +84,7 @@ public class GenerateServices {
     }
 
     public void execute2(){
-        this.execute2(30);
+        this.execute2(30, 10);
     }
 
     public void execute(int maxNodes, int maxRep) {
@@ -113,22 +113,23 @@ public class GenerateServices {
         }
     }
 
-    public void execute2(int numSlices){
+    public void execute2(int nDemands, int maxRep){
         String folderName = "./dem/";
         String fileName = new String();
         // String strSlices;
         String strFactor;
         Integer factor;
         List<String> stubContent = this.readStubFile();
-        List<Integer> sliceScaleFactor = Arrays.asList(100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200);
+        List<Integer> sliceScaleFactor = Arrays.asList(100, 200, 300, 400);
         List<String> demandsStrArr = new ArrayList<String>();
-        List<Service> origServices = this.generateServices(numSlices);
+        List<Service> origServices = this.generateServices(nDemands);
         List<String> srcNodesList = new ArrayList<String>();
-        for (int i = 0; i < numSlices; i++) {
-            srcNodesList.add(String.valueOf(this.rnd.nextInt(30) + 21));
-        }
-
-        for (int rep = 1; rep <= 10; rep++) {
+        for (int rep = 1; rep <= maxRep; rep++) {
+            // generate list of source nodes
+            srcNodesList.clear();
+            for (int i = 0; i < nDemands; i++) {
+                srcNodesList.add(String.valueOf(this.rnd.nextInt(30) + 21));
+            }
             for (int i = 0; i < sliceScaleFactor.size(); i++) {
                 List<Service> generatedSvc = new ArrayList<Service>();
                 demandsStrArr.clear();
