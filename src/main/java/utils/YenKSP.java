@@ -54,7 +54,7 @@ public class YenKSP {
     public List<List<Node>> generateKPathsTiers(int K) { 
         List<List<Node>> result = new ArrayList<>();
         this.K = K;
-        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 3).forEach(n -> {
+        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 4).forEach(n -> {
             graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 0).forEach(m -> {
                 if (!n.getId().equals(m.getId())) {
                     result.addAll((this.generateKPathsNtoM(n.getId(), m.getId(), this.K)));

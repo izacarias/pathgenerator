@@ -84,7 +84,7 @@ public class GenerateServices {
     }
 
     public void execute2(){
-        this.execute2(30, 10);
+        this.execute2(100, 10);
     }
 
     public void execute(int maxNodes, int maxRep) {
@@ -120,15 +120,26 @@ public class GenerateServices {
         String strFactor;
         Integer factor;
         List<String> stubContent = this.readStubFile();
-        List<Integer> sliceScaleFactor = Arrays.asList(100, 200, 300, 400);
+        List<Integer> sliceScaleFactor = Arrays.asList(100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400);
         List<String> demandsStrArr = new ArrayList<String>();
         List<Service> origServices = this.generateServices(nDemands);
         List<String> srcNodesList = new ArrayList<String>();
+        List<String> dstNodesList = new ArrayList<String>();
+        List<String> availableDstNodes = new ArrayList<String>();
+        // clean demands folder
+        availableDstNodes.add("1");
+        availableDstNodes.add("2");
+
+        this.cleanOldDemands(folderName);
         for (int rep = 1; rep <= maxRep; rep++) {
             // generate list of source nodes
             srcNodesList.clear();
             for (int i = 0; i < nDemands; i++) {
-                srcNodesList.add(String.valueOf(this.rnd.nextInt(30) + 21));
+                //  First Access Node = 25
+                // Number of Access Nodes = 39 (39 + 1 bc bound is not included) = 40
+                srcNodesList.add(String.valueOf(this.rnd.nextInt(40) + 25));
+                // Destination nodes
+                dstNodesList.add(availableDstNodes.get(this.rnd.nextInt(availableDstNodes.size())));
             }
             for (int i = 0; i < sliceScaleFactor.size(); i++) {
                 List<Service> generatedSvc = new ArrayList<Service>();
@@ -142,12 +153,23 @@ public class GenerateServices {
                     }
                     generatedSvc.add(svc2);
                 }
-                List<String> generatedStrSvc = servicesToStrArr(generatedSvc, srcNodesList);
+                List<String> generatedStrSvc = servicesToStrArr(generatedSvc, srcNodesList, dstNodesList);
                 demandsStrArr.addAll(generatedStrSvc);
                 strFactor = String.format("%03d", factor);
                 fileName = folderName + "icc_" + strFactor + "-" + String.format("%02d", rep) + ".yml";
                 System.out.println("# Generating file" + fileName + ".");
                 saveToFile(stubContent, demandsStrArr, fileName);
+            }
+        }
+    }
+
+    private void cleanOldDemands(String folderName) {
+        File dir = new File(folderName);
+        logger.info("Purging files in directory: {}", folderName);
+        for (File file: dir.listFiles()){
+            if (!file.isDirectory()){
+                logger.debug("Erasing file {}", file.getName());
+                file.delete();
             }
         }
     }
@@ -211,16 +233,17 @@ public class GenerateServices {
         return output;
     }
 
-    public List<String> servicesToStrArr(List<Service> services, List<String> srcNodeList) {
+    public List<String> servicesToStrArr(List<Service> services, List<String> srcNodeList, List<String> dstNodeList) {
         List<String> output = new ArrayList<String>();
-        Integer i = 0;
-        for (Service service : services) {
-            String srcNode = srcNodeList.get(i++);
+        for (int i=0; i < services.size(); i++) {
+            Service service = services.get(i);
+            String srcNode = srcNodeList.get(i);
+            String dstNode = dstNodeList.get(i);
             output.add("  - demands: [" + service.getDmBandwidth() + "]" + System.lineSeparator());
             output.add("    services: [" + service.getDmClass() + "]" + System.lineSeparator());
             output.add("    service_length: [0]" + System.lineSeparator());
             output.add("    src: '" + srcNode + "'" + System.lineSeparator());
-            output.add("    dst: '99'" + System.lineSeparator());
+            output.add("    dst: '" + dstNode + "'" + System.lineSeparator());
         }
         return output;
     }

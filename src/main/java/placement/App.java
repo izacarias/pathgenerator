@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Stack;
@@ -48,7 +50,7 @@ public class App {
                     System.out.println("Number of KSP missing. Generating 2 KSPs.");
                     ksp = 2;
                 }
-                generateKsp(filename, ksp);
+                generateKsp(filename, ksp, false);
             }
 
             if (Arrays.asList(args).contains("-d")){
@@ -93,7 +95,7 @@ public class App {
         // Set the graph filename 
     }
 
-    private static void generateKsp(String fileName, int num_ksp) {
+    private static void generateKsp(String fileName, int num_ksp, boolean includeFakePaths) {
         Logger logger = LoggerFactory.getLogger(App.class);
         Graph graph = GraphLoader.loadGraph(fileName);
 
@@ -107,19 +109,26 @@ public class App {
         List<List<Node>> paths = ksp.generateKPathsTiers(num_ksp);
         LinkedHashSet<List<Node>> fakePaths = new LinkedHashSet<List<Node>>();
 
-        logger.info("Adding the fake destination node for each path.");
-        for (List<Node> path : paths) {
-            Stack<Node> pathSt = new Stack<Node>();
-            pathSt.addAll(path);
-            List<Node> currPath = new ArrayList<Node>();
-            while (!pathSt.empty()) {
-                currPath.add(pathSt.pop());
-                List<Node> aPath = new ArrayList<Node>(currPath);
-                aPath.add(graph.getNode("99"));
+        if (includeFakePaths) {
+            logger.info("Adding the fake destination node for each path.");
+            for (List<Node> path : paths) {
+                Stack<Node> pathSt = new Stack<Node>();
+                pathSt.addAll(path);
+                List<Node> currPath = new ArrayList<Node>();
+                while (!pathSt.empty()) {
+                    currPath.add(pathSt.pop());
+                    List<Node> aPath = new ArrayList<Node>(currPath);
+                    aPath.add(graph.getNode("999"));
 
-                if (!pathContained(fakePaths, aPath)) {
-                    fakePaths.add(aPath);
+                    if (!pathContained(fakePaths, aPath)) {
+                        fakePaths.add(aPath);
+                    }
                 }
+            }
+        } else {
+            for (List<Node> path : paths) {
+                Collections.reverse(path);
+                fakePaths.add(path);
             }
         }
         // printPaths(fakePaths);
