@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,83 +15,70 @@ import org.graphstream.graph.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.ah.A;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+
 import placement.core.GraphLoader;
 import utils.YenKSP;
 
-/**
- * Hello world!
- *
- */
 public class App {
-    public static void main(String[] args)
-    {   
-        String filename = new String();
-        int ksp = 0;
+
+    @Parameters(separators = "=", commandDescription = "Generate paths for a given topology.")
+    public static class CommandPaths {
+        @Parameter(names = {"--topology", "-t"}, description = "The toplogy file")
+        private String fileName;
+
+        @Parameter(names = {"--kshortestpaths", "-k"}, description = "How many k shortest paths to generate")
+        private Integer ksp;
+
+        @Parameter(names = {"--fakepaths", "-f"}, description = "Include fake paths?")
+        private Boolean fakePaths = false;
+    }
+
+    @Parameters(separators = "=", commandDescription = "Generate demands to be placed in nsp4j.")
+    public static class CommandDemands{
+        @Parameter(names = {"--demands", "-d"}, description = "How many demands to generate")
+        Integer nDemands = 100;
+
+        @Parameter(names = {"--repetitions", "-r"}, description = "How many repetitions of the experiment")
+        Integer nRepetitions = 10;
+
+        @Parameter(names = {"--scaling", "-s"}, description = "Indicate whether to scale the demands")
+        Boolean scaling = false;
+    }
+
+
+    public static void main(String[] args) {   
+
+        App app = new App();
+        CommandPaths cp = new CommandPaths();
+        CommandDemands cd = new CommandDemands();
         
-        if (args.length >= 1){
-            
-            if (Arrays.asList(args).contains("-f")){
-                if (args[Arrays.asList(args).indexOf("-f") + 1] == null) {
-                    System.out.println("Filename is missing. Please provide a dgs file with the -f <filename>.");
-                    System.exit(100);
-                } else {
-                    filename = args[Arrays.asList(args).indexOf("-f") + 1];
-                }
+        JCommander jc = JCommander.newBuilder()
+            .addObject(app)
+            .addCommand("paths", cp)
+            .addCommand("demands", cd)
+            .build();
 
-                if(Arrays.asList(args).contains("-n")){
-                    if (args[Arrays.asList(args).indexOf("-n") + 1] == null){
-                        System.out.println("Number of KSP missing. Please provide the number of KSP to generate with -n <number>.");
-                        System.exit(100);
-                    } else {
-                        ksp = Integer.valueOf(args[Arrays.asList(args).indexOf("-n") + 1].trim());
-                    }
-                } else {
-                    System.out.println("Number of KSP missing. Generating 2 KSPs.");
-                    ksp = 2;
-                }
-                generateKsp(filename, ksp, false);
-            }
+        jc.parse(args);
 
-            if (Arrays.asList(args).contains("-d")){
-                System.out.println("Generating services definition.");
-                int maxNodes = 100;
-                int maxRep = 10;
-                if(Arrays.asList(args).contains("-n")){
-                    try {
-                        maxNodes = Integer.valueOf(args[Arrays.asList(args).indexOf("-n") + 1].trim());
-                    } catch (Exception e) {
-                        System.out.println("You must provide a number for maximum number of nodes -n <number>");
-                    }
-                } else {
-                    System.out.println("Maximum number of nodes not provided. Using default maxNodes = 100");
-                }
-
-                if(Arrays.asList(args).contains("-r")){
-                    try {
-                        maxRep = Integer.valueOf(args[Arrays.asList(args).indexOf("-r") + 1].trim());
-                    } catch (Exception e) {
-                        System.out.println("You must provide a number for maximum number of repetitions. Ex: -r <number>");
-                    }
-                } else {
-                    System.out.println("Maximum number of repetitions not provided. Using default maxRep = 10");
-                }
-
-
-                GenerateServices genServicesClass = new GenerateServices();
-                genServicesClass.execute(maxNodes, maxRep);
-            }
-
-            if (Arrays.asList(args).contains("-t")){
-                GenerateServices genServicesClass = new GenerateServices();
-                genServicesClass.execute2();
-            }
-            
-        } else {
-            System.out.println("Please provide at least one argument to the command line.");
-            System.out.println( "-f <dgs file> \t Generate the paths for the specified topology");
-            System.exit(101);
+        // paths
+        if (jc.getParsedCommand().equals("paths")) {
+            // generateKsp(filename, ksp, false);
+            generateKsp(cp.fileName, cp.ksp, cp.fakePaths);
         }
-        // Set the graph filename 
+
+        // demands
+        if (jc.getParsedCommand().equals("demands")) {
+            GenerateServices genServicesClass = new GenerateServices();
+            if (cd.scaling) {
+                genServicesClass.execute(cd.nDemands, cd.nRepetitions);
+            } else {
+                genServicesClass.executeScaling(cd.nDemands, cd.nRepetitions);
+            }
+        }
     }
 
     private static void generateKsp(String fileName, int num_ksp, boolean includeFakePaths) {

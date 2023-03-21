@@ -83,8 +83,8 @@ public class GenerateServices {
         this.execute(100, 10);
     }
 
-    public void execute2(){
-        this.execute2(100, 10);
+    public void executeScaling(){
+        this.executeScaling(100, 10);
     }
 
     public void execute(int maxNodes, int maxRep) {
@@ -113,7 +113,7 @@ public class GenerateServices {
         }
     }
 
-    public void execute2(int nDemands, int maxRep){
+    public void executeScaling(int nDemands, int maxRep){
         String folderName = "./dem/";
         String fileName = new String();
         // String strSlices;
