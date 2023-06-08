@@ -51,11 +51,17 @@ public class YenKSP {
         return result;
     }
 
-    public List<List<Node>> generateKPathsTiers(int K) { 
+    public List<List<Node>> generateKPathsTiers(int K, int srcTier, int dstTier) { 
+        // check if the tier attribute is present in dgs file
+        if (graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == srcTier).count() == 0 || 
+        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == dstTier).count() == 0) {
+            System.out.println("Missing tier attribite for nodes in the .dgs file");
+            System.exit(999);
+        }
         List<List<Node>> result = new ArrayList<>();
         this.K = K;
-        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 4).forEach(n -> {
-            graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == 0).forEach(m -> {
+        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == dstTier).forEach(n -> {
+            graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == srcTier).forEach(m -> {
                 if (!n.getId().equals(m.getId())) {
                     result.addAll((this.generateKPathsNtoM(n.getId(), m.getId(), this.K)));
                 }
@@ -67,7 +73,7 @@ public class YenKSP {
 
     private ArrayList<List<Node>> generateKPathsNtoM(String srcNodeId, String dstNodeId, int K) {
 
-        logger.info("Generating K={} shortest path from {} to {}.", K, srcNodeId, dstNodeId);
+        logger.info("Generating K={} shortest path from {} to {}.", K, dstNodeId, srcNodeId);
         ArrayList<List<Node>> a = new ArrayList<>();
 
         // Initialize the set to store the potential kth shortest path.

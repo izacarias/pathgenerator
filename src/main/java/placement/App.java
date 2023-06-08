@@ -35,10 +35,17 @@ public class App {
 
         @Parameter(names = {"--fakepaths", "-f"}, description = "Include fake paths?")
         private Boolean fakePaths = false;
+
+        @Parameter(names = {"--srcTier", "-b"}, description = "Indicate the layer where all paths should begin")
+        Integer srcTier = 4;
+
+        @Parameter(names = {"--dstTier", "-e"}, description = "Indicate the layer where all paths should end")
+        Integer dstTier = 0;
     }
 
     @Parameters(separators = "=", commandDescription = "Generate demands to be placed in nsp4j.")
     public static class CommandDemands{
+        
         @Parameter(names = {"--demands", "-d"}, description = "How many demands to generate")
         Integer nDemands = 100;
 
@@ -67,13 +74,13 @@ public class App {
         // paths
         if (jc.getParsedCommand().equals("paths")) {
             // generateKsp(filename, ksp, false);
-            generateKsp(cp.fileName, cp.ksp, cp.fakePaths);
+            generateKsp(cp.fileName, cp.ksp, cp.fakePaths, cp.srcTier, cp.dstTier);
         }
 
         // demands
         if (jc.getParsedCommand().equals("demands")) {
             GenerateServices genServicesClass = new GenerateServices();
-            if (cd.scaling) {
+            if (!cd.scaling) {
                 genServicesClass.execute(cd.nDemands, cd.nRepetitions);
             } else {
                 genServicesClass.executeScaling(cd.nDemands, cd.nRepetitions);
@@ -81,7 +88,7 @@ public class App {
         }
     }
 
-    private static void generateKsp(String fileName, int num_ksp, boolean includeFakePaths) {
+    private static void generateKsp(String fileName, int num_ksp, boolean includeFakePaths, int srcTier, int dstTier) {
         Logger logger = LoggerFactory.getLogger(App.class);
         Graph graph = GraphLoader.loadGraph(fileName);
 
@@ -92,7 +99,7 @@ public class App {
 
         YenKSP ksp = new YenKSP(graph);
         logger.info("Generating paths.");
-        List<List<Node>> paths = ksp.generateKPathsTiers(num_ksp);
+        List<List<Node>> paths = ksp.generateKPathsTiers(num_ksp, srcTier, dstTier);
         LinkedHashSet<List<Node>> fakePaths = new LinkedHashSet<List<Node>>();
 
         if (includeFakePaths) {
