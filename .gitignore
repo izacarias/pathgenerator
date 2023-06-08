@@ -28,3 +28,4 @@ target
 # Ignoring VSCode folder
 .vscode
 dem/*.yml
+fakepaths.txt
