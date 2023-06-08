@@ -1,5 +1,4 @@
-# Pacement of O-RAN Functional Blocks
-Repository to store initial programming on the placement of CU and DU functional blocks on O-RAN architecture.
+# Path generator for nsp4j-optimizer project
 
 ## Requirements
 - Apache Maven (>= 3.8.6)
