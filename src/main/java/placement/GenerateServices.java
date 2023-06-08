@@ -137,7 +137,7 @@ public class GenerateServices {
             for (int i = 0; i < nDemands; i++) {
                 //  First Access Node = 25
                 // Number of Access Nodes = 39 (39 + 1 bc bound is not included) = 40
-                srcNodesList.add(String.valueOf(this.rnd.nextInt(40) + 25));
+                srcNodesList.add(String.valueOf(this.rnd.nextInt(22) + 25));
                 // Destination nodes
                 dstNodesList.add(availableDstNodes.get(this.rnd.nextInt(availableDstNodes.size())));
             }
@@ -147,8 +147,8 @@ public class GenerateServices {
                 factor = sliceScaleFactor.get(i);
                 for (int j = 0; j < origServices.size(); j++) {
                     Service svc2 = origServices.get(j).clone();
-                    // Only scale up demands of type URLLC
-                    if (svc2.getDmClass().equals(ServiceType.URLLC.toString())) {
+                    // Only scale up demands of type URLLC and eMBB
+                    if (svc2.getDmClass().equals(ServiceType.URLLC.toString()) || svc2.getDmClass().equals(ServiceType.EMBB.toString())) {
                         svc2.setDmBandwidth(Math.ceil(origServices.get(j).getDmBandwidth(true) * factor / 100));
                     }
                     generatedSvc.add(svc2);
