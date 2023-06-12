@@ -105,6 +105,7 @@ public class App {
         if (includeFakePaths) {
             logger.info("Adding the fake destination node for each path.");
             for (List<Node> path : paths) {
+                Collections.reverse(path);
                 Stack<Node> pathSt = new Stack<Node>();
                 pathSt.addAll(path);
                 List<Node> currPath = new ArrayList<Node>();
