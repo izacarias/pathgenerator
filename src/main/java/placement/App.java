@@ -120,7 +120,7 @@ public class App {
             }
         } else {
             for (List<Node> path : paths) {
-                Collections.reverse(path);
+                // Collections.reverse(path);
                 fakePaths.add(path);
             }
         }

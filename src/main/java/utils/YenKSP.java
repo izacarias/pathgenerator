@@ -60,8 +60,8 @@ public class YenKSP {
         }
         List<List<Node>> result = new ArrayList<>();
         this.K = K;
-        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == dstTier).forEach(n -> {
-            graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == srcTier).forEach(m -> {
+        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == srcTier).forEach(n -> {
+            graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == dstTier).forEach(m -> {
                 if (!n.getId().equals(m.getId())) {
                     result.addAll((this.generateKPathsNtoM(n.getId(), m.getId(), this.K)));
                 }
