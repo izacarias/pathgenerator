@@ -137,7 +137,7 @@ public class GenerateServices {
             for (int i = 0; i < nDemands; i++) {
                 //  First Access Node = 25
                 // Number of Access Nodes = 39 (39 + 1 bc bound is not included) = 40
-                srcNodesList.add(String.valueOf(this.rnd.nextInt(22) + 25));
+                srcNodesList.add(String.valueOf(this.rnd.nextInt(8) + 9));
                 // Destination nodes
                 dstNodesList.add(availableDstNodes.get(this.rnd.nextInt(availableDstNodes.size())));
             }
