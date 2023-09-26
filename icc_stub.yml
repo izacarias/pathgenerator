@@ -8,7 +8,7 @@ global: {
   "num_servers_node": 2,
   "servers_weight": 95.0, # alpha
   "links_weight": 5.0,   # beta
-  "server_capacity_types": [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 1400000, 1500000, 1600000, 310000, 320000, 330000],
+  "server_capacity_types": [1, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, ],
   "link_capacity_types": [99, 500, 1000, 2000, 3000, 4000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 150000, 200000, 300000],
   "overprovisioning_server_capacity": 1.1, 
   "overprovisioning_link_capacity": 1.1,
@@ -37,118 +37,127 @@ function_types:
   - type: 1 # 0.8
     attributes: {
       "min_process_delay": 0.10, 
-      "load_ratio": [2.16, 2.16],
+      "load_ratio": 2.16,
       "process_delay": 3.36,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # DU - URLLC
   - type: 2 # 0.4
     attributes: {
       "min_process_delay": 0.20, 
-      "load_ratio": [1.44, 1.44],
+      "load_ratio": 1.44,
       "process_delay": 2.24,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # CU - URLLC
   - type: 3
     attributes: {
       "min_process_delay": 0.20, 
-      "load_ratio": [0.9, 0.9],
+      "load_ratio": 0.9,
       "process_delay": 1.4,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # RU - eMBB
   - type: 4 # 0.8
     attributes: {
       "min_process_delay": 0.10, 
-      "load_ratio": [2.16, 2.16],
+      "load_ratio": 2.16,
       "process_delay": 3.36,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # DU - eMBB
   - type: 5 # 0.4
     attributes: {
       "min_process_delay": 0.20, 
-      "load_ratio": [1.44, 1.44],
+      "load_ratio": 1.44,
       "process_delay": 2.24,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # CU - eMBB
   - type: 6
     attributes: {
       "min_process_delay": 0.20, 
-      "load_ratio": [0.9, 0.9],
+      "load_ratio": 0.9,
       "process_delay": 1.4,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # RU - mMTC
   - type: 7 # 0.8
     attributes: {
       "min_process_delay": 0.10, 
-      "load_ratio": [2.16, 2.16],
+      "load_ratio": 2.16,
       "process_delay": 3.36,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # DU - mMTC
   - type: 8 # 0.4
     attributes: {
       "min_process_delay": 0.20, 
-      "load_ratio": [1.44, 1.44],
+      "load_ratio": 1.44,
       "process_delay": 2.24,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
   # CU - mMTC
   - type: 9
     attributes: {
       "min_process_delay": 0.20, 
-      "load_ratio": [0.9, 0.9],
+      "load_ratio": 0.9,
       "process_delay": 1.4,
       "replicable": false,
-      "overhead_ratio": [0.0, 0.0],
+      "overhead_ratio": 0.0,
       "max_dem": 1,
       "max_bw": 200000,
       "process_traffic_delay": 0.0,
       "max_delay": 1000.0,
+      "shareable": true,
     }
 # traffic flow definitions
 traffic_flows:
