@@ -6,11 +6,27 @@
     "configurations": [
         {
             "type": "java",
-            "name": "App",
+            "name": "Demands (20, scale)",
             "request": "launch",
             "mainClass": "placement.App",
             "projectName": "placement",
             "args": ["demands", "-d", "20", "-r", "10", "-s"]
+        },
+        {
+            "type": "java",
+            "name": "Demands (40)",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-d", "40", "-r", "10", ]
+        },
+        {
+            "type": "java",
+            "name": "Paths",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["paths", "-t", "topology.dgs", "-k", "3", "-b", "1", "-e", "3"]
         }
     ]
 }

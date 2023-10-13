@@ -66,4 +66,8 @@ public class Service {
         }
         return svc;
     }
+
+    public String toString(){
+        return this.dmDescription + " with BW: " + String.valueOf(dmBandwidth);
+    }
 }

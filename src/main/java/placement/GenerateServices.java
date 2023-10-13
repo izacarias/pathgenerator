@@ -41,18 +41,18 @@ public class GenerateServices {
     public GenerateServices() {
         this.services = new ArrayList<Service>();
         
-        Service svc1 = new Service(1, Service.ServiceType.URLLC, "URLLC_RO1", 4.0);
+        // Service svc1 = new Service(1, Service.ServiceType.URLLC, "URLLC_RO1", 4.0);
         Service svc2 = new Service(2, Service.ServiceType.URLLC, "URLLC_RO2", 25.0);
         Service svc3 = new Service(3, Service.ServiceType.URLLC, "URLLC_AW1", 100.0);
-        Service svc4 = new Service(4, Service.ServiceType.URLLC, "URLLC_AW2", 1000.0);
+        // Service svc4 = new Service(4, Service.ServiceType.URLLC, "URLLC_AW2", 1000.0);
         Service svc5 = new Service(5, Service.ServiceType.EMBB, "eMBB1", 10000.0);
         Service svc6 = new Service(6, Service.ServiceType.EMBB, "eMBB2", 20000.0);
         Service svc7 = new Service(7, Service.ServiceType.MMTC, "mMTC1", 1.0);
         Service svc8 = new Service(8, Service.ServiceType.MMTC, "mMTC2", 2.0);
-        this.services.add(svc1);
+        // this.services.add(svc1);
         this.services.add(svc2);
         this.services.add(svc3);
-        this.services.add(svc4);
+        // this.services.add(svc4);
         this.services.add(svc5);
         this.services.add(svc6);
         this.services.add(svc7);
@@ -87,29 +87,36 @@ public class GenerateServices {
         this.executeScaling(100, 10);
     }
 
-    public void execute(int maxNodes, int maxRep) {
+    public void execute(int nDemands, int maxRep){
         String folderName = "./dem/";
         String fileName = new String();
-        String strSlices;
-        String strRepitition;
-        List<String> demandsStrArr = new ArrayList<String>();
+        // String strSlices;
         List<String> stubContent = this.readStubFile();
-
-        for (int slices = 5; slices <= maxNodes; slices += 5) {
-            for (int repition = 0; repition < maxRep; repition++) {
-                demandsStrArr.clear();
-                List<Service> generatedSrv = this.generateServices(slices);
-                List<String> generatedStrSrv = servicesToStrArr(generatedSrv);
-                // this.demandsStrArr.add("# Generating " + demands + " demands" +
-                // System.lineSeparator());
-                demandsStrArr.addAll(generatedStrSrv);
-                strSlices = String.format("%02d", slices);
-                strRepitition = String.format("%02d", repition+1);
-                fileName = folderName + "icc_" + strSlices + "-" + strRepitition + ".yml";
-                System.out.println("# Generating file" + fileName + ".");
-                saveToFile(stubContent, demandsStrArr, fileName);
+        List<String> demandsStrArr = new ArrayList<String>();
+        List<Service> origServices = this.generateServices(nDemands);
+        List<String> srcNodesList = new ArrayList<String>();
+        List<String> dstNodesList = new ArrayList<String>();
+        List<String> availableDstNodes = new ArrayList<String>();
+        availableDstNodes.add("1");
+        availableDstNodes.add("2");
+        availableDstNodes.add("3");
+        
+        // clean demands folder
+        this.cleanOldDemands(folderName);
+        for (int rep = 1; rep <= maxRep; rep++) {
+            // generate list of source nodes
+            srcNodesList.clear();
+            for (int i = 0; i < nDemands; i++) {
+                srcNodesList.add(String.valueOf(this.rnd.nextInt(8) + 9));
+                // Destination nodes
+                dstNodesList.add(availableDstNodes.get(this.rnd.nextInt(availableDstNodes.size())));
             }
-
+            demandsStrArr.clear();
+            List<String> generatedStrSvc = servicesToStrArr(origServices, srcNodesList, dstNodesList);
+            demandsStrArr.addAll(generatedStrSvc);
+            fileName = folderName + "icc_" + nDemands + "-" + String.format("%02d", rep) + ".yml";
+            System.out.println("# Generating file" + fileName + ".");
+            saveToFile(stubContent, demandsStrArr, fileName);
         }
     }
 
@@ -166,11 +173,16 @@ public class GenerateServices {
     private void cleanOldDemands(String folderName) {
         File dir = new File(folderName);
         logger.info("Purging files in directory: {}", folderName);
-        for (File file: dir.listFiles()){
-            if (!file.isDirectory()){
-                logger.debug("Erasing file {}", file.getName());
-                file.delete();
+        try{
+            for (File file: dir.listFiles()){
+                if (!file.isDirectory()){
+                    logger.debug("Erasing file {}", file.getName());
+                    file.delete();
+                }
             }
+        } catch (NullPointerException e){
+            logger.info("The folder {} does not exists. Creating the folder", folderName);
+            dir.mkdir();
         }
     }
 

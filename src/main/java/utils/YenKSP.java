@@ -14,6 +14,8 @@ import org.graphstream.graph.implementations.Graphs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import placement.Definitions;
+
 public class YenKSP {
 
     /* A copy of the graph is used to apply the algorithm */
@@ -53,15 +55,15 @@ public class YenKSP {
 
     public List<List<Node>> generateKPathsTiers(int K, int srcTier, int dstTier) { 
         // check if the tier attribute is present in dgs file
-        if (graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == srcTier).count() == 0 || 
-        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == dstTier).count() == 0) {
-            System.out.println("Missing tier attribite for nodes in the .dgs file");
+        if (graphCopy.nodes().filter(c -> (int) c.getAttribute(Definitions.NODE_TYPE) == srcTier).count() == 0 || 
+        graphCopy.nodes().filter(c -> (int) c.getAttribute(Definitions.NODE_TYPE) == dstTier).count() == 0) {
+            System.out.println("Missing " + Definitions.NODE_TYPE + " attribite for nodes in the .dgs file");
             System.exit(999);
         }
         List<List<Node>> result = new ArrayList<>();
         this.K = K;
-        graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == srcTier).forEach(n -> {
-            graphCopy.nodes().filter(c -> (int) c.getAttribute("tier") == dstTier).forEach(m -> {
+        graphCopy.nodes().filter(c -> (int) c.getAttribute(Definitions.NODE_TYPE) == srcTier).forEach(n -> {
+            graphCopy.nodes().filter(c -> (int) c.getAttribute(Definitions.NODE_TYPE) == dstTier).forEach(m -> {
                 if (!n.getId().equals(m.getId())) {
                     result.addAll((this.generateKPathsNtoM(n.getId(), m.getId(), this.K)));
                 }
