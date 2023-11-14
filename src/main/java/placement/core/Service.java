@@ -37,6 +37,10 @@ public class Service {
         }
     }
 
+    public ServiceType getDmClassServiceType(){
+        return this.dmClass;
+    }
+
     public String getDmDescription() {
         return dmDescription;
     }

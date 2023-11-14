@@ -18,7 +18,135 @@
             "request": "launch",
             "mainClass": "placement.App",
             "projectName": "placement",
-            "args": ["demands", "-d", "40", "-r", "10", ]
+            "args": ["demands", "-d", "40", "-r", "5", ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 10 URLLC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "10000", "-r", "5", "-t", "URLLC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 20 URLLC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "20000", "-r", "5", "-t", "URLLC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 30 URLLC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "30000", "-r", "5", "-t", "URLLC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 40 URLLC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "40000", "-r", "5", "-t", "URLLC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 50 URLLC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "50000", "-r", "5", "-t", "URLLC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 10 eMBB",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "10000", "-r", "5", "-t", "eMBB" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 20 eMBB",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "20000", "-r", "5", "-t", "eMBB" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 30 eMBB",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "30000", "-r", "5", "-t", "eMBB" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 40 eMBB",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "40000", "-r", "5", "-t", "eMBB" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 50 eMBB",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "50000", "-r", "5", "-t", "eMBB" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 10 mMTC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "10000", "-r", "5", "-t", "mMTC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 20 mTMC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "20000", "-r", "5", "-t", "mMTC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 30 mTMC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "30000", "-r", "5", "-t", "mMTC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 40 mMTC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "40000", "-r", "5", "-t", "mMTC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 50 mMTC",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "50000", "-r", "5", "-t", "mMTC" ]
+        },
+        {
+            "type": "java",
+            "name": "Demands Load 50 MIX",
+            "request": "launch",
+            "mainClass": "placement.App",
+            "projectName": "placement",
+            "args": ["demands", "-l", "50000", "-r", "5"]
         },
         {
             "type": "java",

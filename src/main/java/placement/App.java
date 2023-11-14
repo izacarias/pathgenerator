@@ -52,6 +52,12 @@ public class App {
         @Parameter(names = {"--repetitions", "-r"}, description = "How many repetitions of the experiment")
         Integer nRepetitions = 10;
 
+        @Parameter(names = {"--total-load", "-l"}, description = "Instead of generating a fixed number of demands, it generates a fixed number of network load")
+        Integer nLoad = 0;
+
+        @Parameter(names = {"--service-type", "-t"}, description = "Indicate which type of slice should be used (valid values are URLLC, eMBB, mMTC)")
+        String serviceType = "";
+
         @Parameter(names = {"--scaling", "-s"}, description = "Indicate whether to scale the demands")
         Boolean scaling = false;
     }
@@ -80,10 +86,16 @@ public class App {
         // demands
         if (jc.getParsedCommand().equals("demands")) {
             GenerateServices genServicesClass = new GenerateServices();
-            if (!cd.scaling) {
-                genServicesClass.execute(cd.nDemands, cd.nRepetitions);
-            } else {
+            if (cd.scaling) {
                 genServicesClass.executeScaling(cd.nDemands, cd.nRepetitions);
+            }
+
+            if (cd.nLoad > 0){
+                genServicesClass.executeLoad(cd.nLoad, cd.nRepetitions, cd.serviceType);
+            }
+            
+            if (!cd.scaling && cd.nLoad == 0) {
+                genServicesClass.execute(cd.nDemands, cd.nRepetitions);
             }
         }
     }
